@@ -1,0 +1,52 @@
+services:
+  # Laravel PHP-FPM
+  laravel-php-nginx-socket:
+    build:
+      context: ./docker
+      dockerfile: php.Dockerfile
+      target: php-base
+    container_name: laravel-php-nginx-socket
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    environment:
+      XDEBUG_MODE: ${XDEBUG_MODE}
+      XDEBUG_START: ${XDEBUG_START}
+      XDEBUG_CLIENT_HOST: ${XDEBUG_CLIENT_HOST}
+    volumes:
+      - unix-socket:/var/run/php
+    networks:
+      - laravel-php-nginx-socket-network
+    healthcheck:
+      test: [ "CMD-SHELL", "cgi-fcgi -bind -connect /var/run/php/php-fpm.sock" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Веб-сервер Nginx
+  laravel-nginx-socket:
+    build:
+      context: ./docker
+      dockerfile: nginx.Dockerfile
+    container_name: laravel-nginx-socket
+    restart: unless-stopped
+    volumes:
+      - unix-socket:/var/run/php
+    networks:
+      - laravel-php-nginx-socket-network
+    healthcheck:
+      test: [ "CMD", "nginx", "-t" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      laravel-php-nginx-socket:
+        condition: service_healthy
+
+volumes:
+  unix-socket:
+
+networks:
+  laravel-php-nginx-socket-network:
+    driver: bridge

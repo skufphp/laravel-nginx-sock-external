@@ -1,0 +1,10 @@
+services:
+  laravel-php-nginx-socket:
+    image: "${CI_REGISTRY_IMAGE}/php:${IMAGE_TAG}"
+    restart: unless-stopped
+
+  laravel-nginx-socket:
+    image: "${CI_REGISTRY_IMAGE}/nginx:${IMAGE_TAG}"
+    restart: unless-stopped
+    ports:
+      - "8000:80"

@@ -1,0 +1,40 @@
+# Laravel
+/vendor/
+/node_modules/
+/public/build/
+/public/hot/
+/public/storage
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+.env
+.env.backup
+.env.production
+!.env.docker
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.phpunit.cache
+/config.php
+/public/mix-manifest.json
+
+# Docker specific
+# Если в будущем будут добавлены локальные тома для БД в корень проекта
+/docker/postgres_data/
+
+# IDE & OS
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

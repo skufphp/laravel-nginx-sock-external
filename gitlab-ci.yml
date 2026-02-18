@@ -1,0 +1,7 @@
+include:
+  - project: 'skuf-php/ansible-starter'
+    ref: 'v2.0.0'
+    file: '/gitlab/docker-deploy.yml'
+    inputs:
+      app_url: "https://my-cool-site.com"
+      ci_templates_ref: 'v2.0.0'

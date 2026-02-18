@@ -1,0 +1,83 @@
+services:
+  laravel-php-nginx-socket:
+    volumes:
+      - .:/var/www/laravel
+      - unix-socket:/var/run/php
+
+  laravel-nginx-socket:
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      - .:/var/www/laravel
+      - unix-socket:/var/run/php
+
+    depends_on:
+      - laravel-node-nginx-socket
+
+  laravel-node-nginx-socket:
+    image: node:24-alpine
+    container_name: laravel-node-nginx-socket
+    working_dir: /var/www/laravel
+    volumes:
+      - .:/var/www/laravel
+      - node_modules:/var/www/laravel/node_modules
+    command: >
+      sh -lc '
+        if [ -f package-lock.json ]; then
+          npm ci;
+        else
+          npm install;
+        fi;
+      
+        npm run dev -- --host 0.0.0.0 --port 5173
+      '
+    ports:
+      - "5173:5173"
+    networks:
+      - laravel-php-nginx-socket-network
+
+  laravel-postgres-nginx-socket:
+    image: postgres:18.2-alpine
+    container_name: laravel-postgres-nginx-socket
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_FORWARD_PORT}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - laravel-php-nginx-socket-network
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  laravel-pgadmin-nginx-socket:
+    image: dpage/pgadmin4:latest
+    container_name: laravel-pgadmin-nginx-socket
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    networks:
+      - laravel-php-nginx-socket-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost/" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      laravel-postgres-nginx-socket:
+        condition: service_healthy
+
+volumes:
+  node_modules:
+  postgres-data:
