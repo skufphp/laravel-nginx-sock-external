@@ -17,7 +17,11 @@ services:
     networks:
       - laravel-php-nginx-socket-network
     healthcheck:
-      test: [ "CMD-SHELL", "cgi-fcgi -bind -connect /var/run/php/php-fpm.sock" ]
+      test:
+        [
+          "CMD-SHELL",
+          "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect /var/run/php/php-fpm.sock | grep -q 'pong'"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
