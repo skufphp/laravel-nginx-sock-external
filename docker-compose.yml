@@ -51,48 +51,15 @@ services:
       laravel-php-nginx-socket:
         condition: service_healthy
 
-  # База данных PostgreSQL
-  laravel-postgres-nginx-socket:
-    image: postgres:18.2-alpine
-    container_name: laravel-postgres-nginx-socket
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    networks:
-      - laravel-nginx-socket-network
-    healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  # Хранилище данных Redis
-  laravel-redis-nginx-socket:
-    image: redis:8.6-alpine
-    container_name: laravel-redis-nginx-socket
-    restart: unless-stopped
-    command: [ "redis-server", "--appendonly", "yes" ]
-    volumes:
-      - redis-data:/data
-    networks:
-      - laravel-nginx-socket-network
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
 volumes:
   unix-socket:
-  postgres-data:
-  redis-data:
 
 networks:
   laravel-nginx-socket-network:
     driver: bridge
+
+  redis-cluster-dev:
+    external: true
+
+  postgres-dev-network:
+    external: true

@@ -21,8 +21,5 @@ services:
     env_file:
       - .env
     command: [ "sh", "-lc", "php artisan migrate --force" ]
-    depends_on:
-      laravel-postgres-nginx-socket:
-        condition: service_healthy
     networks:
       - laravel-nginx-socket-network

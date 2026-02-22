@@ -40,36 +40,5 @@ services:
     networks:
       - laravel-nginx-socket-network
 
-  # Только для разработки: проброс портов PostgreSQL и Redis наружу
-  laravel-postgres-nginx-socket:
-    ports:
-      - "${DB_FORWARD_PORT}:5432"
-
-  laravel-redis-nginx-socket:
-    ports:
-      - "${REDIS_FORWARD_PORT}:6379"
-
-  # Только для разработки: интерфейс управления БД (pgAdmin)
-  laravel-pgadmin-nginx-socket:
-    image: dpage/pgadmin4:latest
-    container_name: laravel-pgadmin-nginx-socket
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "${PGADMIN_PORT}:80"
-    networks:
-      - laravel-nginx-socket-network
-    healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost/" ]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    depends_on:
-      laravel-postgres-nginx-socket:
-        condition: service_healthy
-
 volumes:
   node_modules:
