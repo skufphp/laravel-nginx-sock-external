@@ -1,10 +1,25 @@
 services:
+  # Настройки PHP для Production (использование образов из Registry)
   laravel-php-nginx-socket:
     image: "${CI_REGISTRY_IMAGE}/php:${IMAGE_TAG}"
     restart: unless-stopped
+    env_file:
+      - .env
 
+  # Настройки Nginx для Production
   laravel-nginx-socket:
     image: "${CI_REGISTRY_IMAGE}/nginx:${IMAGE_TAG}"
     restart: unless-stopped
     ports:
       - "8000:80"
+
+  # Сервис для автоматического запуска миграций при деплое
+  migrate:
+    image: "${CI_REGISTRY_IMAGE}/php:${IMAGE_TAG}"
+    restart: "no"
+    working_dir: /var/www/laravel
+    env_file:
+      - .env
+    command: [ "sh", "-lc", "php artisan migrate --force" ]
+    networks:
+      - laravel-nginx-socket-network

@@ -1,5 +1,5 @@
 services:
-  # Laravel PHP-FPM
+  # Основной контейнер Laravel PHP-FPM
   laravel-php-nginx-socket:
     build:
       context: ./docker
@@ -13,17 +13,23 @@ services:
       XDEBUG_START: ${XDEBUG_START}
       XDEBUG_CLIENT_HOST: ${XDEBUG_CLIENT_HOST}
     volumes:
+      # Общий том для UNIX-сокета (связь с Nginx)
       - unix-socket:/var/run/php
     networks:
-      - laravel-php-nginx-socket-network
+      - laravel-nginx-socket-network
     healthcheck:
-      test: [ "CMD-SHELL", "cgi-fcgi -bind -connect /var/run/php/php-fpm.sock" ]
+      # Проверка доступности FPM через сокет
+      test:
+        [
+          "CMD-SHELL",
+          "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect /var/run/php/php-fpm.sock | grep -q 'pong'"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
 
-  # Веб-сервер Nginx
+  # Веб-сервер Nginx (Proxy)
   laravel-nginx-socket:
     build:
       context: ./docker
@@ -31,9 +37,10 @@ services:
     container_name: laravel-nginx-socket
     restart: unless-stopped
     volumes:
+      # Подключаем тот же том с сокетом
       - unix-socket:/var/run/php
     networks:
-      - laravel-php-nginx-socket-network
+      - laravel-nginx-socket-network
     healthcheck:
       test: [ "CMD", "nginx", "-t" ]
       interval: 10s
@@ -48,5 +55,11 @@ volumes:
   unix-socket:
 
 networks:
-  laravel-php-nginx-socket-network:
+  laravel-nginx-socket-network:
     driver: bridge
+
+  redis-cluster-dev:
+    external: true
+
+  postgres-dev-network:
+    external: true
