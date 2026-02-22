@@ -1,5 +1,5 @@
 services:
-  # Laravel PHP-FPM
+  # Основной контейнер Laravel PHP-FPM
   laravel-php-nginx-socket:
     build:
       context: ./docker
@@ -13,10 +13,12 @@ services:
       XDEBUG_START: ${XDEBUG_START}
       XDEBUG_CLIENT_HOST: ${XDEBUG_CLIENT_HOST}
     volumes:
+      # Общий том для UNIX-сокета (связь с Nginx)
       - unix-socket:/var/run/php
     networks:
-      - laravel-php-nginx-socket-network
+      - laravel-nginx-socket-network
     healthcheck:
+      # Проверка доступности FPM через сокет
       test:
         [
           "CMD-SHELL",
@@ -27,7 +29,7 @@ services:
       retries: 5
       start_period: 10s
 
-  # Веб-сервер Nginx
+  # Веб-сервер Nginx (Proxy)
   laravel-nginx-socket:
     build:
       context: ./docker
@@ -35,9 +37,10 @@ services:
     container_name: laravel-nginx-socket
     restart: unless-stopped
     volumes:
+      # Подключаем тот же том с сокетом
       - unix-socket:/var/run/php
     networks:
-      - laravel-php-nginx-socket-network
+      - laravel-nginx-socket-network
     healthcheck:
       test: [ "CMD", "nginx", "-t" ]
       interval: 10s
@@ -48,9 +51,48 @@ services:
       laravel-php-nginx-socket:
         condition: service_healthy
 
+  # База данных PostgreSQL
+  laravel-postgres-nginx-socket:
+    image: postgres:18.2-alpine
+    container_name: laravel-postgres-nginx-socket
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - laravel-nginx-socket-network
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Хранилище данных Redis
+  laravel-redis-nginx-socket:
+    image: redis:8.6-alpine
+    container_name: laravel-redis-nginx-socket
+    restart: unless-stopped
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis-data:/data
+    networks:
+      - laravel-nginx-socket-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   unix-socket:
+  postgres-data:
+  redis-data:
 
 networks:
-  laravel-php-nginx-socket-network:
+  laravel-nginx-socket-network:
     driver: bridge
