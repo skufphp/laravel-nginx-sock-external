@@ -1,5 +1,5 @@
 include:
-  - project: 'skuf-php/ansible-starter'
+  - project: 'ansible-templates-repos/ansible-laravel-internal'
     ref: 'v2.0.0'
     file: '/gitlab/docker-deploy.yml'
     inputs:

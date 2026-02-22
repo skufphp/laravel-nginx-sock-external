@@ -2,7 +2,7 @@
 # Laravel PHP-FPM Nginx Socket (Boilerplate)
 # ==========================================
 
-.PHONY: help up down restart build rebuild logs status shell-php shell-nginx shell-postgres clean setup artisan migrate laravel-install
+.PHONY: help up down restart build rebuild logs status shell-php shell-nginx clean setup artisan migrate
 
 # Цвета для вывода
 YELLOW=\033[0;33m
@@ -18,8 +18,6 @@ COMPOSE = $(COMPOSE_DEV)
 # Сервисы (имена сервисов из compose-файлов)
 PHP_SERVICE=laravel-php-nginx-socket
 NGINX_SERVICE=laravel-nginx-socket
-POSTGRES_SERVICE=laravel-postgres-nginx-socket
-PGADMIN_SERVICE=laravel-pgadmin-nginx-socket
 NODE_SERVICE=laravel-node-nginx-socket
 
 help: ## Показать справку
@@ -35,9 +33,9 @@ check-files: ## Проверить наличие всех необходимы�
 	@test -f .env || (echo "$(RED)✗ .env не найден. Убедитесь, что вы настроили проект Laravel$(NC)" && exit 1)
 	@test -f docker/php.Dockerfile || (echo "$(RED)✗ docker/php.Dockerfile не найден$(NC)" && exit 1)
 	@test -f docker/nginx.Dockerfile || (echo "$(RED)✗ docker/nginx.Dockerfile не найден$(NC)" && exit 1)
-	@test -f docker/nginx/conf.d/laravel.conf || (echo "$(RED)✗ config/nginx/conf.d/default.conf не найден$(NC)" && exit 1)
-	@test -f docker/php/php.ini || (echo "$(RED)✗ config/php/php.ini не найден$(NC)" && exit 1)
-	@test -f docker/php/www.conf || (echo "$(RED)✗ config/php/www.conf не найден$(NC)" && exit 1)
+	@test -f docker/nginx/conf.d/laravel.conf || (echo "$(RED)✗ docker/nginx/conf.d/laravel.conf не найден$(NC)" && exit 1)
+	@test -f docker/php/php.ini || (echo "$(RED)✗ docker/php/php.ini не найден$(NC)" && exit 1)
+	@test -f docker/php/www.conf || (echo "$(RED)✗ docker/php/www.conf не найден$(NC)" && exit 1)
 	@echo "$(GREEN)✓ Все файлы на месте$(NC)"
 
 up: check-files ## Запустить контейнеры (Dev)
@@ -69,12 +67,6 @@ logs-php: ## Просмотр логов PHP-FPM
 logs-nginx: ## Просмотр логов Nginx
 	$(COMPOSE) logs -f $(NGINX_SERVICE)
 
-logs-postgres: ## Просмотр логов PostgreSQL
-	$(COMPOSE) logs -f $(POSTGRES_SERVICE)
-
-logs-pgadmin: ## Просмотр логов pgAdmin
-	$(COMPOSE) logs -f $(PGADMIN_SERVICE)
-
 logs-node: ## Просмотр логов Node (HMR)
 	$(COMPOSE) logs -f $(NODE_SERVICE)
 
@@ -90,18 +82,10 @@ shell-nginx: ## Подключиться к контейнеру Nginx
 shell-node: ## Подключиться к контейнеру Node
 	$(COMPOSE) exec $(NODE_SERVICE) sh
 
-shell-postgres: ## Подключиться к PostgreSQL CLI
-	@echo "$(YELLOW)Подключение к базе...$(NC)"
-	@DB_USER=$$(grep '^DB_USERNAME=' .env | cut -d '=' -f 2- | tr -d '[:space:]'); \
-	DB_NAME=$$(grep '^DB_DATABASE=' .env | cut -d '=' -f 2- | tr -d '[:space:]'); \
-	$(COMPOSE) exec $(POSTGRES_SERVICE) psql -U $$DB_USER -d $$DB_NAME
-
 # --- Команды Laravel ---
-setup: ## Полная инициализация проекта с нуля
+setup: ## Полная инициализация проекта с нуля (без internal infra)
 	@make build
 	@make up
-	@echo "$(YELLOW)Ожидание готовности базы данных...$(NC)"
-	@$(COMPOSE) exec $(POSTGRES_SERVICE) sh -c 'until pg_isready; do sleep 1; done'
 	@make install-deps
 	@make artisan CMD="key:generate"
 	@make migrate
@@ -167,38 +151,9 @@ cleanup-nginx: ## Удалить .htaccess (не нужен для Nginx)
 		echo "$(GREEN)✓ .htaccess уже отсутствует$(NC)"; \
 	fi
 
-info: ## Показать информацию о проекте
-	@echo "$(YELLOW)Laravel-Nginx-Socket Development Environment$(NC)"
-	@echo "======================================"
-	@echo "$(GREEN)Сервисы:$(NC)"
-	@echo "  • PHP-FPM 8.4 (Alpine)"
-	@echo "  • Nginx"
-	@echo "  • PostgreSQL 17"
-	@echo "  • pgAdmin 4"
-	@echo ""
-	@echo "$(GREEN)Структура:$(NC)"
-	@echo "  • docker/           - Dockerfiles и конфиги сервисов"
-	@echo "  • .env              - единый файл настроек (Laravel + Docker)"
-	@echo ""
-	@echo "$(GREEN)Порты:$(NC)"
-	@echo "  • 80   - Nginx (Web Server)"
-	@echo "  • 5432 - PostgreSQL (Database)"
-	@echo "  • 8080 - pgAdmin (DB Admin Interface)"
-	@echo "  • Unix Socket - Связь PHP-FPM <-> Nginx"
-
-validate: ## Проверить доступность сервисов по HTTP
-	@echo "$(YELLOW)Проверка работы сервисов...$(NC)"
-	@echo -n "Nginx (http://localhost): "
-	@curl -s -o /dev/null -w "%{http_code}" http://localhost && echo " $(GREEN)✓$(NC)" || echo " $(RED)✗$(NC)"
-	@echo -n "pgAdmin (http://localhost:8080): "
-	@curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 && echo " $(GREEN)✓$(NC)" || echo " $(RED)✗$(NC)"
-	@echo "$(YELLOW)Статус контейнеров:$(NC)"
-	@$(COMPOSE) ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-
-
 clean: ## Удалить контейнеры и тома
 	$(COMPOSE) down -v
-	@echo "$(RED)! Контейнеры и данные БД удалены$(NC)"
+	@echo "$(RED)! Контейнеры и тома удалены$(NC)"
 
 clean-all: ## Полная очистка (контейнеры, образы, тома)
 	@echo "$(YELLOW)Полная очистка...$(NC)"
