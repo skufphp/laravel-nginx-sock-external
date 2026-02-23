@@ -18,6 +18,7 @@ services:
     networks:
       - laravel-nginx-socket-network
       - postgres-dev-network
+      - mysql-dev-network
     healthcheck:
       # Проверка доступности FPM через сокет
       test:
