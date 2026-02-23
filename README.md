@@ -23,6 +23,8 @@
 1.  Создайте проект Laravel: `composer create-project laravel/laravel .`
 2.  Скопируйте файлы boilerplate в корень проекта.
 3.  Настройте драйвер БД в `docker-compose.yml` (см. [SETUP.md](SETUP.md)).
+    *   При переключении PostgreSQL ↔ MySQL не забудьте также поменять сеть в `docker-compose.yml`: `postgres-dev-network` или `mysql-dev-network`.
+        *   Важно: сеть нужно менять именно в сервисе `laravel-php-nginx-socket` (у него в `networks` должны быть `laravel-nginx-socket-network` + нужная DB-сеть).
 4.  Настройте `.env` (подключение к **внешней БД** и **внешнему Redis Cluster**).
 5.  Запустите:
     ```bash
