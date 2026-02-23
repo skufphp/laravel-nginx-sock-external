@@ -41,6 +41,12 @@ composer create-project laravel/laravel .
    - Для **PostgreSQL**: `dockerfile: php.pgsql.Dockerfile` (по умолчанию)
    - Для **MySQL**: `dockerfile: php.mysql.Dockerfile`
 
+   Также при переключении БД нужно переключить сеть, через которую контейнер приложения видит внешнюю БД:
+   - `postgres-dev-network` (PostgreSQL)
+   - `mysql-dev-network` (MySQL)
+
+   Важно: меняйте DB-сеть именно в сервисе `laravel-php-nginx-socket` (он должен оставаться в `laravel-nginx-socket-network` для связи с Nginx через Unix-socket, и дополнительно — в нужной сети БД).
+
 ```yaml
 # docker-compose.yml
 services:
@@ -48,6 +54,11 @@ services:
     build:
       context: ./docker
       dockerfile: php.pgsql.Dockerfile # <--- ИЗМЕНИТЕ ЗДЕСЬ НА php.mysql.Dockerfile ПРИ НЕОБХОДИМОСТИ
+
+    # и здесь (PostgreSQL ↔ MySQL):
+    # networks:
+    #   - laravel-nginx-socket-network
+    #   - postgres-dev-network # или mysql-dev-network
 ```
 
 ---
