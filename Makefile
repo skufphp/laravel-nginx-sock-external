@@ -2,7 +2,20 @@
 # Laravel PHP-FPM Nginx Socket (Boilerplate)
 # ==========================================
 
-.PHONY: help up down restart build rebuild logs status shell-php shell-nginx clean setup artisan migrate
+.PHONY: \
+	help \
+	check-files \
+	up up-prod down restart build rebuild \
+	logs logs-php logs-nginx logs-node \
+	status \
+	shell-php shell-nginx shell-node \
+	setup install-deps \
+	composer-install composer-update composer-require \
+	npm-install npm-dev npm-build \
+	artisan composer \
+	migrate rollback fresh tinker test-php \
+	permissions cleanup-nginx \
+	clean clean-all dev-reset
 
 # Цвета для вывода
 YELLOW=\033[0;33m
