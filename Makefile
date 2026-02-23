@@ -1,5 +1,5 @@
 # ==========================================
-# Laravel PHP-FPM Nginx Socket (Boilerplate)
+# Laravel PHP-FPM + Nginx Unix Socket (Boilerplate)
 # ==========================================
 
 .PHONY: \
@@ -127,7 +127,7 @@ npm-install: ## Установить NPM зависимости
 npm-dev: ## Запустить Vite в режиме разработки (hot reload)
 	$(COMPOSE) exec $(NODE_SERVICE) npm run dev
 
-npm-build: ## Собрать фронтенд (внутри PHP контейнера для prod-like билда или dev)
+npm-build: ## Собрать фронтенд (внутри Node контейнера)
 	$(COMPOSE) exec $(NODE_SERVICE) npm run build
 
 artisan: ## Запустить команду artisan (make artisan CMD="migrate")
