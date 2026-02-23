@@ -17,6 +17,7 @@ services:
       - unix-socket:/var/run/php
     networks:
       - laravel-nginx-socket-network
+      - postgres-dev-network
     healthcheck:
       # Проверка доступности FPM через сокет
       test:
