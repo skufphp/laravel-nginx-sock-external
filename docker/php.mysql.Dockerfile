@@ -32,7 +32,7 @@ RUN set -eux; \
     && apk add --no-cache --virtual .build-deps \
       $PHPIZE_DEPS linux-headers \
       icu-dev libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev \
-      mariadb-connector-c-dev libxml2-dev oniguruma-dev
+      libxml2-dev oniguruma-dev
 
 # 2) PHP-расширения
 RUN set -eux; \
@@ -40,7 +40,6 @@ RUN set -eux; \
     docker-php-ext-install -j"$(nproc)" \
       pdo \
       pdo_mysql \
-      mysqli \
       mbstring \
       xml \
       gd \
