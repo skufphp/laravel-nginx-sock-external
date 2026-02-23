@@ -3,7 +3,7 @@ services:
   laravel-php-nginx-socket:
     build:
       context: ./docker
-      dockerfile: php.Dockerfile
+      dockerfile: php.pgsql.Dockerfile
       target: php-base
     container_name: laravel-php-nginx-socket
     restart: unless-stopped
